@@ -1,0 +1,42 @@
+version: "3"
+services:
+  server:
+    container_name: js_server
+    build: .
+
+    restart: always
+    ports:
+      - 3000:3030
+
+    # environment:
+    volumes:
+      - ./local_data/app:/app
+
+    depends_on:
+      - mongo
+
+  mongo:
+    container_name: js_mongo
+    image: mongo:5.0.9
+    restart: always
+    networks:
+      - quan_network 
+    # ports:
+    #   - "27017:27017"
+
+    # volumes:
+    #   - "/home/rnd/sdb5/${APP_NAME}/db:/data/db"
+    
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo --quiet 1
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs" ]
+  
+
+networks:
+  quan_network:
+    name: quan_network
+    driver: bridge
